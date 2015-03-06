@@ -246,7 +246,7 @@ DBFParser.prototype.parse = function(arrayBuffer,src,response) {
             }
         }
 
-        charString.push(responseHeader.slice(0, 10))
+        charString.push(responseHeader.slice(0, 10).replace(/\0/g, ''))
         responseHeader =  responseHeader.slice(32, responseHeader.length);
     }
 
@@ -323,7 +323,7 @@ DBFParser.prototype.parse = function(arrayBuffer,src,response) {
                 }
             }
 
-          charString.push(responseText.slice(0, z))
+          charString.push(responseText.slice(0, z).replace(/\0/g, ''))
           responseText =  responseText.slice(z, responseText.length);
           record[o.fields[j].name] = charString.join('').trim();
         }

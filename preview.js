@@ -143,7 +143,7 @@ function toGeojson(geojsonData) {
                 break;
             default:
         }
-        features.push(feature);
+        if("coordinates" in feature.geometry) features.push(feature);
     };
     return geojson;
 }
