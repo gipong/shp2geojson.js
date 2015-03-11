@@ -1,5 +1,5 @@
 /*
- * predefined [EPSG:3826], [EPSG:3821], [EPSG:3825], [EPSG:3828] ,[EPSG:3857] projections
+ * predefined [EPSG:3826], [EPSG:3821], [EPSG:3825], [EPSG:3828], [EPSG:3857] projections
  * If your desired projection is not here, the default projection is EPSG:4326
  * 
  * Usage :
@@ -90,11 +90,13 @@ function toGeojson(geojsonData) {
     var dbfRecords = geojsonData.dbf.records;
 
     geojson.type = "FeatureCollection";
+    min = TransCoord(geojsonData.shp.minX, geojsonData.shp.minY);
+    max = TransCoord(geojsonData.shp.maxX, geojsonData.shp.maxY);
     geojson.bbox = [
-        geojsonData.shp.minX,
-        geojsonData.shp.minY,
-        geojsonData.shp.maxX,
-        geojsonData.shp.maxY
+        min.x,
+        min.y,
+        max.x,
+        max.y
     ];
 
     geojson.features = features;

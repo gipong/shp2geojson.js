@@ -1,0 +1,76 @@
+.upload {
+    position: relative;
+    overflow: hidden;
+}
+.upload input[type=file] {
+    position: absolute;
+    top: 0;
+    right: 0;
+    min-width: 100%;
+    min-height: 100%;
+    font-size: 100px;
+    text-align: right;
+    filter: alpha(opacity=0);
+    opacity: 0;
+    outline: none;
+    background: white;
+    cursor: inherit;
+    display: block;
+}
+.tableDisplay {
+	height: 500px;
+	overflow: auto;
+}
+#forkongithub a {
+    background:#000;
+    color:#fff;
+    text-decoration:none;
+    font-family:arial,sans-serif;
+    text-align:center;
+    font-weight:bold;
+    padding:5px 40px;
+    font-size:1rem;
+    line-height:2rem;
+    position:relative;
+    transition:0.5s;
+}
+#forkongithub a:hover {
+    background:#c11;
+    color:#fff;
+}
+#forkongithub a::before,#forkongithub a::after {
+    content:"";
+    width:100%;
+    display:block;
+    position:absolute;
+    top:1px;
+    left:0;
+    height:1px;
+    background:#fff;
+}
+#forkongithub a::after {
+    bottom:1px;
+    top:auto;
+} 
+@media screen {
+    #forkongithub{ 
+        position:absolute;
+        display:block;
+        top:0;
+        right:0;
+        width:200px;
+        overflow:hidden;
+        height:200px;
+        z-index:9999;
+    }
+    #forkongithub a {
+        position:absolute;
+        top:35px;
+        right:-55px;
+        transform:rotate(45deg);
+        -webkit-transform:rotate(45deg);
+        -ms-transform:rotate(45deg);
+        -moz-transform:rotate(45deg);
+        -o-transform:rotate(45deg);
+    }
+}
