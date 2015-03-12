@@ -22,13 +22,19 @@
 			<div class="ten wide aligned column">
 							
 				<div class="ui form segment">
-					<div class="field ui labeled input">
+					<div class="field ui labeled input" id="epsgField">
 						<div class="ui label">EPSG</div>
-						<input type="text" placeholder="4326" id="epsg">
+						<input type="text" placeholder="4326" id="epsg" class="v">
 					</div>
-					<div class="field ui labeled input">
-						<div class="ui label">Encoding</div>
-						<input type="text" placeholder="UTF-8" id="encoding">
+					<div class="field">
+						
+						<select name="encodingName" id="encoding" class="ui search dropdown v">
+							<option value="">Encoding of the shapefile</option>
+							<option value="UTF-8">UTF-8</option>
+							<option value="Big5">Big5</option>
+							<option value="Big5-HKSCS">Big5-HKSCS</option>
+						</select>
+						
 					</div>
 					<div class="two fields">
 					
@@ -36,10 +42,10 @@
 						<i class="download icon"></i>Download TestData
 					</div></div>
 
-					<div class="field"><div class="ui teal fluid labeled icon button upload" id="zipfile" data-content="Mandatory files : SHP , DBF" data-variation="inverted large">
+					<div class="field"><div class="ui teal fluid labeled icon disabled button upload" id="zipfile" data-content="Mandatory files : SHP , DBF" data-variation="inverted large">
 							Upload zip file
 							<i class="add icon"></i>
-							<input type="file" id="file">
+							<input type="file" id="file" accept=".zip">
 					</div></div>
 					
 					<div class="ui feed">   
@@ -119,36 +125,40 @@
 			navigationPosition: 'right'
 		});
 		
-		var map = L.map('map').setView([ 23.05, 120.191 ], 10);
+		var map = L.map('map').setView([ 23.05, 120.191 ], 10),
+		vector;
 		L.tileLayer('http://{s}.tile.osm.org/{z}/{x}/{y}.png' , { maxZoom: 18}).addTo(map);
 
-		var vector = L.geoJson([], {
-			style: function (feature) {
-				return feature.properties.style;
-			},
-			onEachFeature: function (feature, layer) {
-				
-				layer.on({click: function(e) {
-					vector.eachLayer(function(l) {
-						vector.resetStyle(l);
-					});
-									
-					$('.tbodyContent').remove();
-					var tbody = '<tbody class="tbodyContent">';
-					for (var key in e.target.feature.properties) {
-						tbody += 
-							('<tr class="center aligned"><td>'+ key + '</td><td>' + e.target.feature.properties[key] + '</td></tr>');
-					}
-					$('#attribute').append(tbody + '</tbody>');
-					map.panTo(e.latlng);
+		function initVector () {
+			vector = L.geoJson([], {
+				style: function (feature) {
+					return feature.properties.style;
+				},
+				onEachFeature: function (feature, layer) {
+					
+					layer.on({click: function(e) {
+						vector.eachLayer(function(l) {
+							vector.resetStyle(l);
+						});
+										
+						$('.tbodyContent').remove();
+						var tbody = '<tbody class="tbodyContent">';
+						for (var key in e.target.feature.properties) {
+							tbody += 
+								('<tr class="center aligned"><td>'+ key + '</td><td>' + e.target.feature.properties[key] + '</td></tr>');
+						}
+						$('#attribute').append(tbody + '</tbody>');
+						map.panTo(e.latlng);
 
-					if('setStyle' in e.target) e.target.setStyle({
-						fillColor: '#FF0',
-						fillOpacity: 0.6
-					});
-				}});
-			}
-		}).addTo(map);
+						if('setStyle' in e.target) e.target.setStyle({
+							fillColor: '#FF0',
+							fillOpacity: 0.6
+						});
+					}});
+				}
+			}).addTo(map);
+		}
+		initVector();
 
 		$("#file").change(function() {
 			var epsg = ($('#epsg').val() == '') ? 4326 : $('#epsg').val(),
@@ -165,8 +175,9 @@
 					vector.addData(data);
 					map.fitBounds(vector.getBounds());
 					$('.dimmer').removeClass( "active" );
+					$('#zipfile').addClass( "disabled" );
 					$('#epsg').val('');
-					$('#encoding').val('');
+					$('#encoding').selectedIndex = 0;
 				});
 			} else {
 				$('.modal').modal('show');
@@ -177,6 +188,7 @@
 			inline: true,
 			position : 'bottom left'
 		});
+		$('input[class="v"]').popup('hide');
 		$('#downloadfile').click(function() {
 			window.location.href = 'demo/10tnvillage.zip';
 		});
@@ -185,6 +197,21 @@
 		});
 		$('#removeLayer').click(function() {
 			map.removeLayer(vector);
+			initVector();
+		});
+		$('#encoding').dropdown();
+		$('.v').change(function() {
+			var msg = '<div class="msg" id="msg" style="display: none;"><div class="ui primary inverted red segment">'+
+  			'<p>EPSG code is required</p></div><br /></div>';
+			if($('#epsg').val().match(/\d{4}$/) != null) {
+				$('#zipfile').removeClass( "disabled" );
+				$('.msg').slideUp(750);
+			} else {
+				if($('.msg')[0] == undefined) {
+					$('#epsgField').after(msg);
+					$('.msg').slideDown(1500);
+				}
+			}
 		});
 		
 	});	
