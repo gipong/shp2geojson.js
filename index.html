@@ -1,7 +1,7 @@
 <!doctype html>
 <html>
 	<head>
-		<title>Demo page - preview shapefile</title>
+		<title>Demo page - preview shapefile </title>
 		<meta http-equiv="Content-Type" content="charset=UTF-8" />
 		<meta name="author" content="Gipong">
 		<meta name="keywords" content="shapefile,dbf,geojson,preview,shp2geojson">
@@ -86,6 +86,9 @@
 			<div class="ten wide column center aligned">
 				<div id="map" style="height: 500px; weight: 100%"></div>
 				</br>
+				<div class="ui blue icon button" id="entireLayer">
+					<i class="maximize icon"></i>
+				</div>
 				<div id="addZipfile" class="ui right labeled icon button">
 					<i class="up arrow icon"></i>
 					Upload another zip file
@@ -171,9 +174,12 @@
 					encoding: encoding,
 					EPSG: epsg
 				}, function(data) {
+					console.log(data);
 					$.fn.fullpage.moveTo(2);
 					vector.addData(data);
-					map.fitBounds(vector.getBounds());
+					map.fitBounds([
+						[data.bbox[1], data.bbox[0]], [data.bbox[3], data.bbox[2]]
+					]);
 					$('.dimmer').removeClass( "active" );
 					$('#zipfile').addClass( "disabled" );
 					$('#epsg').val('');
@@ -188,7 +194,9 @@
 			inline: true,
 			position : 'bottom left'
 		});
-		$('input[class="v"]').popup('hide');
+		$('#entireLayer').click(function() {
+			map.fitBounds(vector.getBounds());
+		});
 		$('#downloadfile').click(function() {
 			window.location.href = 'demo/10tnvillage.zip';
 		});
