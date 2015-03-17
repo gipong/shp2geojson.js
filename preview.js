@@ -1,6 +1,6 @@
 /*
- * predefined [EPSG:3826], [EPSG:3821], [EPSG:3825], [EPSG:3828], [EPSG:3857] projections
- * If your desired projection is not here, the default projection is EPSG:4326
+ * predefined [EPSG:3821] projection
+ * Please make sure your desired projection can find on http://epsg.io/
  * 
  * Usage :
  *      loadshp({
@@ -17,50 +17,58 @@
 
 var inputData = {},
     geoData = {},
-    EPSGUser,
+    EPSGUser, url, encoding, EPSG,
     EPSG4326 = proj4('EPSG:4326');
 
-proj4.defs([
-    ['EPSG:3826', '+title=TWD97 TM2 zone 121 +proj=tmerc +lat_0=0 +lon_0=121 +k=0.9999 +x_0=250000 +y_0=0 +ellps=GRS80 +units=m +no_defs'],
-    ['EPSG:3821', '+title=TWD67 +proj=longlat +towgs84=-752,-358,-179,-.0000011698,.0000018398,.0000009822,.00002329 +ellps=aust_SA +units=degrees +no_defs'],
-    ['EPSG:3825', '+title=TWD97 TM2 zone 119 +proj=tmerc +lat_0=0 +lon_0=119 +k=0.9999 +x_0=250000 +y_0=0 +ellps=GRS80 +units=m +no_defs'],
-    ['EPSG:3828', '+title=TWD67 TM2 zone 121 +proj=tmerc +lat_0=0 +lon_0=121 +k=0.9999 +x_0=250000 +y_0=0 +ellps=aust_SA +units=m +no_defs'],
-    ['EPSG:3857', '+proj=merc +a=6378137 +b=6378137 +lat_ts=0.0 +lon_0=0.0 +x_0=0.0 +y_0=0 +k=1.0 +units=m +nadgrids=@null +wktext +no_defs']
-]);
-
 function loadshp(config, returnData) {
-    var url = config.url,
-        encoding = typeof config.encoding != 'utf-8' ? config.encoding : 'utf-8',
-        EPSG = typeof config.EPSG != 'undefined' ? config.EPSG : 4326;
+    url = config.url;
+    encoding = typeof config.encoding != 'utf-8' ? config.encoding : 'utf-8';
+    EPSG = typeof config.EPSG != 'undefined' ? config.EPSG : 4326;
 
-    EPSGUser = proj4('EPSG:'+EPSG);
-    if( typeof url != 'string' ) {
-        var reader = new FileReader();
-        reader.onload = function(e) {
-            var URL = window.URL || window.webkitURL,
-                zip = new JSZip(e.target.result),
-                shpString =  zip.file(/.shp$/)[0].name,
-                dbfString = zip.file(/.dbf$/)[0].name;
+    loadEPSG('http://epsg.io/'+EPSG+'.js', function() {
+        if( EPSG == 3821) 
+            proj4.defs([
+                ['EPSG:3821', '+title=TWD67 +proj=longlat +towgs84=-752,-358,-179,-.0000011698,.0000018398,.0000009822,.00002329 +ellps=aust_SA +units=degrees +no_defs']
+            ]);
 
-            SHPParser.load(URL.createObjectURL(new Blob([zip.file(shpString).asArrayBuffer()])), shpLoader, returnData);
-            DBFParser.load(URL.createObjectURL(new Blob([zip.file(dbfString).asArrayBuffer()])), encoding, dbfLoader, returnData);
+        EPSGUser = proj4('EPSG:'+EPSG);
+
+        if( typeof url != 'string' ) {
+            var reader = new FileReader();
+            reader.onload = function(e) {
+                var URL = window.URL || window.webkitURL,
+                    zip = new JSZip(e.target.result),
+                    shpString =  zip.file(/.shp$/)[0].name,
+                    dbfString = zip.file(/.dbf$/)[0].name;
+
+                SHPParser.load(URL.createObjectURL(new Blob([zip.file(shpString).asArrayBuffer()])), shpLoader, returnData);
+                DBFParser.load(URL.createObjectURL(new Blob([zip.file(dbfString).asArrayBuffer()])), encoding, dbfLoader, returnData);
+            }
+
+            reader.readAsArrayBuffer(url);
+        } else {
+            JSZipUtils.getBinaryContent(url, function(err, data) {
+                if(err)  throw err;
+
+                var URL = window.URL || window.webkitURL,
+                    zip = new JSZip(data),
+                    shpString =  zip.file(/.shp$/)[0].name,
+                    dbfString = zip.file(/.dbf$/)[0].name;
+
+                SHPParser.load(URL.createObjectURL(new Blob([zip.file(shpString).asArrayBuffer()])), shpLoader, returnData);
+                DBFParser.load(URL.createObjectURL(new Blob([zip.file(dbfString).asArrayBuffer()])), encoding, dbfLoader, returnData);
+
+            });
         }
+    });
+}
 
-        reader.readAsArrayBuffer(url);
-    } else {
-        JSZipUtils.getBinaryContent(url, function(err, data) {
-            if(err)  throw err;
-
-            var URL = window.URL || window.webkitURL,
-                zip = new JSZip(data),
-                shpString =  zip.file(/.shp$/)[0].name,
-                dbfString = zip.file(/.dbf$/)[0].name;
-
-            SHPParser.load(URL.createObjectURL(new Blob([zip.file(shpString).asArrayBuffer()])), shpLoader, returnData);
-            DBFParser.load(URL.createObjectURL(new Blob([zip.file(dbfString).asArrayBuffer()])), encoding, dbfLoader, returnData);
-
-        });
-    }
+function loadEPSG(url, callback) {
+    var script = document.createElement('script');
+    script.src = url;
+    script.onreadystatechange = callback;
+    script.onload = callback;
+    document.getElementsByTagName('head')[0].appendChild(script);
 }
 
 function TransCoord(x, y) {
