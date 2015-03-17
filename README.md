@@ -25,54 +25,54 @@ Load the ZIP archive that must contain the .shp and .dbf files and replace the .
 
 Two options available if you need to set the EPSG or encoding for best fit to your data.
 
-```
-    loadshp({
-        url: '/shp/test.zip', // path or your upload file
-        encoding: 'big5' // default utf-8
-        EPSG: 3826 // default 4326
-    }, function(geojson) {
-        // geojson returned
-    });
+```JavaScript
+loadshp({
+    url: '/shp/test.zip', // path or your upload file
+    encoding: 'big5' // default utf-8
+    EPSG: 3826 // default 4326
+}, function(geojson) {
+    // geojson returned
+});
 ```
 
 #### Use with Leaflet.js
-```
-    var map = L.map('map').setView([ 0, 0 ], 10),
-    vector = L.geoJson().addTo(map);
-    
-    L.tileLayer('http://{s}.tile.osm.org/{z}/{x}/{y}.png' , { maxZoom: 18}).addTo(map);
-    
-    loadshp({
-        url: '/shp/test.zip',
-        encoding: 'big5',
-        EPSG: 3826
-    }, function(data) {
-        vector.addData(data);
-        map.fitBounds(vector.getBounds()); 
-    });
+```JavaScript
+var map = L.map('map').setView([ 0, 0 ], 10),
+vector = L.geoJson().addTo(map);
+
+L.tileLayer('http://{s}.tile.osm.org/{z}/{x}/{y}.png' , { maxZoom: 18}).addTo(map);
+
+loadshp({
+    url: '/shp/test.zip',
+    encoding: 'big5',
+    EPSG: 3826
+}, function(data) {
+    vector.addData(data);
+    map.fitBounds(vector.getBounds()); 
+});
 ```
 
 
 #### Use with Google Maps API v3
-```
-    var map = new google.maps.Map(document.getElementById('map'), {
-        zoom: 10,
-        center: {lat: 0, lng: 0}
-    });
+```JavaScript
+var map = new google.maps.Map(document.getElementById('map'), {
+    zoom: 10,
+    center: {lat: 0, lng: 0}
+});
+
+loadshp({
+    url: '/shp/test.zip',
+    encoding: 'big5',
+    EPSG: 3826
+}, function(data) {
+    var bounds = new google.maps.LatLngBounds(),
+    bbox = data.bbox;
     
-    loadshp({
-        url: '/shp/test.zip',
-        encoding: 'big5',
-        EPSG: 3826
-    }, function(data) {
-        var bounds = new google.maps.LatLngBounds(),
-        bbox = data.bbox;
-        
-        map.data.addGeoJson(data);
-        bounds.extend(new google.maps.LatLng (bbox[1], bbox[0]));
-        bounds.extend(new google.maps.LatLng (bbox[3], bbox[2]))
-        map.fitBounds(bounds);
-    });
+    map.data.addGeoJson(data);
+    bounds.extend(new google.maps.LatLng (bbox[1], bbox[0]));
+    bounds.extend(new google.maps.LatLng (bbox[3], bbox[2]))
+    map.fitBounds(bounds);
+});
 ```
 
 # License
