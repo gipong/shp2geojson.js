@@ -1,7 +1,7 @@
 <!doctype html>
 <html>
 	<head>
-		<title>Demo page - preview shapefile </title>
+		<title>Demo page - shp2geojson.js </title>
 		<meta http-equiv="Content-Type" content="charset=UTF-8" />
 		<meta name="author" content="Gipong">
 		<meta name="keywords" content="shapefile,dbf,geojson,preview,shp2geojson">
@@ -10,19 +10,18 @@
 	<span id="forkongithub"><a href="https://github.com/gipong/shp2geojson.js">Fork me on GitHub</a></span>
 	<div id="wrap">
 	<div id="map" ></div>
-	
+
 	<div id="info">
 		<img class="tips" style="width: auto; height: 100%;" src="demo/shp2geojsonC2.svg">
 	</div>
-	
+
 	<div id="attr"><div class="tableDisplay"><table id="attribute" class="ui small celled unstackable table">
 		<thead id="attrHead"><tr class="center aligned"><th>Attribute</th><th>Value</th></tr></thead>
 		<tbody class="tbodyContent"></tbody>
 	</table></div></div>
-	
 
 	<footer id="footer"><div class="ui page grid">
-	
+
 		<div class="sixteen wide column center aligned">
 			<div class="large ui blue icon button" id="entireLayer">
 				<i class="maximize icon"></i>
@@ -39,12 +38,6 @@
 
 	<div id="shp" class="shp-modal"><div class="ui page grid">
 
-		<!-- <div class="sixteen wide column">
-			<h2 class="ui center aligned icon header">
-				<img style="width: 68%" src="demo/shp2geojson.svg">
-				<div class="content">shp2geojson.js</div>
-			</h2>
-		</div> -->
 		<div class="sixteen wide aligned column">
 						
 			<div class="ui form segment">
@@ -52,16 +45,11 @@
 					<div class="ui label">EPSG</div>
 					<input type="text" placeholder="4326" id="epsg" class="v">
 				</div>
-				<div class="field">
-					
-					<select name="encodingName" id="encoding" class="ui search dropdown v">
-						<option value="">Encoding of the shapefile</option>
-						<option value="UTF-8">UTF-8</option>
-						<option value="Big5">Big5</option>
-						<option value="Big5-HKSCS">Big5-HKSCS</option>
-					</select>
-					
+				<div class="field ui labeled input" >
+					<div class="ui label">Encoding</div>
+					<input type="text" placeholder="UTF-8, Big5, Big5-HKSCS ... " id="encoding" class="v">
 				</div>
+
 				<div class="two fields">
 				
 				<div class="right field"><div class="ui blue fluid labeled icon button" data-content="Metadata : EPSG: 3826, Encoding: big5" data-variation="inverted large" id="downloadfile">
@@ -77,7 +65,7 @@
 				<div class="ui feed">   
 					<div class="content">
 						<div class="summary">
-						Data Source <a href="http://data.tainan.gov.tw/dataset/tn-village">http://data.tainan.gov.tw/dataset/tn-village</a>.
+						Data Source <a href="http://data.tainan.gov.tw/dataset/tn-village" target="_blank">http://data.tainan.gov.tw/dataset/tn-village</a>.
 						</div>
 					</div> 
 				</div>
@@ -163,21 +151,22 @@
 		}
 		initVector();
 
-		$("#file").change(function() {
+		$("#file").change(function(evt) {
 			var epsg = ($('#epsg').val() == '') ? 4326 : $('#epsg').val(),
-			encoding = ($('#encoding').val() == '') ? 'UTF-8' : $('#encoding').val()
-
-			if(this.files[0].name.split('.')[1] == 'zip') {
-				if(this.files[0]) $('.dimmer').addClass( "active" );
+			encoding = ($('#encoding').val() == '') ? 'UTF-8' : $('#encoding').val(),
+			file = evt.target.files[0];
+			console.log(evt);
+			if(file.name.split('.')[1] == 'zip') {
+				if(file) $('.dimmer').addClass( "active" );
 				loadshp({
-					url: this.files[0],
+					url: file,
 					encoding: encoding,
 					EPSG: epsg
 				}, function(data) {
 					$('.shp-modal').toggleClass('effect');
 					$('.overlay').toggleClass('effect');
 					$('#wrap').toggleClass('blur');
-					//console.log(data);
+					console.log(data);
 					vector.addData(data);
 					map.fitBounds([
 						[data.bbox[1], data.bbox[0]], [data.bbox[3], data.bbox[2]]
@@ -185,7 +174,7 @@
 					$('.dimmer').removeClass( "active" );
 					$('#zipfile').addClass( "disabled" );
 					$('#epsg').val('');
-					$('#encoding').selectedIndex = 0;
+					$('#encoding').val('');
 					$('#info').addClass('picInfo')
 				});
 			} else {
@@ -221,14 +210,15 @@
 		});
 		$('#removeLayer').click(function() {
 			$('#attr').fadeOut(300);
-			map.removeLayer(vector);
-			initVector();
+			window.location.reload();
+			//map.removeLayer(vector);
+			//initVector();
 		});
 		$('#encoding').dropdown();
 		$('.v').change(function() {
 			var msg = '<div class="msg" id="msg" style="display: none;"><div class="ui primary inverted red segment">'+
-  			'<p>EPSG code is required</p></div><br /></div>';
-			if($('#epsg').val().match(/\d{4}$/) != null) {
+  			'<p>EPSG code is required . You can find the EPSG Code of your Shapefile on <strong>spatialreference.org</strong></p></div><br /></div>';
+			if($('#epsg').val().match(/^\d{4}$/) != null) {
 				$('#zipfile').removeClass( "disabled" );
 				$('.msg').slideUp(750);
 			} else {
@@ -243,4 +233,3 @@
 	</script>
 	</body>
 </html>
-
