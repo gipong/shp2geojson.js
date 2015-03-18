@@ -11,6 +11,9 @@
 	<div id="wrap">
 	<div id="map" ></div>
 	
+	<div id="info">
+		<img class="tips" style="width: auto; height: 100%;" src="demo/shp2geojsonC2.svg">
+	</div>
 	
 	<div id="attr"><div class="tableDisplay"><table id="attribute" class="ui small celled unstackable table">
 		<thead id="attrHead"><tr class="center aligned"><th>Attribute</th><th>Value</th></tr></thead>
@@ -21,14 +24,14 @@
 	<footer id="footer"><div class="ui page grid">
 	
 		<div class="sixteen wide column center aligned">
-			<div class="ui blue icon button" id="entireLayer">
+			<div class="large ui blue icon button" id="entireLayer">
 				<i class="maximize icon"></i>
 			</div>
-			<div id="addZipfile" class="ui right labeled icon button">
+			<div id="addZipfile" class="tips large ui positive right labeled icon button">
 				<i class="file archive icon"></i>
 				Upload zip file
 			</div>
-			<div id="removeLayer" class="negative ui button">Remove All Features</div>
+			<div id="removeLayer" class="negative large ui button">Remove All Features</div>
 		</div>
 
 	</div></footer>
@@ -124,9 +127,9 @@
 	<script type="text/javascript" charset="UTF-8"> 
 	$(document).ready(function() {
 		
-		var map = L.map('map').setView([ 23.05, 120.191 ], 10),
+		var map = L.map('map').setView([ 0, 0 ], 2),
 		vector;
-		L.tileLayer('http://{s}.tile.osm.org/{z}/{x}/{y}.png' , { maxZoom: 18}).addTo(map);
+		L.tileLayer('http://{s}.tile.osm.org/{z}/{x}/{y}.png' , { maxZoom: 15}).addTo(map);
 
 		function initVector () {
 			vector = L.geoJson([], {
@@ -183,7 +186,7 @@
 					$('#zipfile').addClass( "disabled" );
 					$('#epsg').val('');
 					$('#encoding').selectedIndex = 0;
-
+					$('#info').addClass('picInfo')
 				});
 			} else {
 				$('.modal').modal('show');
@@ -194,9 +197,14 @@
 			inline: true,
 			position : 'bottom left'
 		});
+		$('.tips').popup({
+			target: '#addZipfile',
+			position: 'top center',
+			title: 'Getting started !',
+			variation: 'huge'
+		});
 		$('#entireLayer').click(function() {
 			map.fitBounds(vector.getBounds());
-
 		});
 		$('#downloadfile').click(function() {
 			window.location.href = 'demo/10tnvillage.zip';

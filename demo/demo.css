@@ -21,11 +21,22 @@
 	height: 500px;
 	overflow: auto;
 }
+.picInfo {
+    transform: scale(0, 0);
+    transition: transform 0.6s ease;
+}
+#info {
+    position: absolute;
+    width: 100%;
+    top: 10%;
+    bottom: 20%;
+    text-align: center
+}
 #attr {
     position: absolute;
     width: 30%;
     margin-left: 5%;
-    top:10%;
+    top: 10%;
     display: none;
 }
 #footer {
