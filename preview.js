@@ -16,9 +16,9 @@
  */
 
 var inputData = {},
-    geoData = {},
-    EPSGUser, url, encoding, EPSG,
-    EPSG4326 = proj4('EPSG:4326');
+geoData = {},
+EPSGUser, url, encoding, EPSG,
+EPSG4326 = proj4('EPSG:4326');
 
 function loadshp(config, returnData) {
     url = config.url;
@@ -26,20 +26,25 @@ function loadshp(config, returnData) {
     EPSG = typeof config.EPSG != 'undefined' ? config.EPSG : 4326;
 
     loadEPSG('http://epsg.io/'+EPSG+'.js', function() {
-        if( EPSG == 3821) 
+        if(EPSG == 3821) 
             proj4.defs([
-                ['EPSG:3821', '+title=TWD67 +proj=longlat +towgs84=-752,-358,-179,-.0000011698,.0000018398,.0000009822,.00002329 +ellps=aust_SA +units=degrees +no_defs']
+                ['EPSG:3821', '+proj=tmerc +ellps=GRS67 +towgs84=-752,-358,-179,-.0000011698,.0000018398,.0000009822,.00002329 +lat_0=0 +lon_0=121 +x_0=250000 +y_0=0 +k=0.9999 +units=m +no_defs']
             ]);
 
         EPSGUser = proj4('EPSG:'+EPSG);
 
-        if( typeof url != 'string' ) {
+        if(typeof url != 'string') {
             var reader = new FileReader();
             reader.onload = function(e) {
-                var URL = window.URL || window.webkitURL,
-                    zip = new JSZip(e.target.result),
-                    shpString =  zip.file(/.shp$/)[0].name,
-                    dbfString = zip.file(/.dbf$/)[0].name;
+                var URL = window.URL || window.webkitURL || window.mozURL || window.msURL,
+                zip = new JSZip(e.target.result),
+                shpString =  zip.file(/.shp$/i)[0].name,
+                dbfString = zip.file(/.dbf$/i)[0].name,
+                prjString = zip.file(/.prj$/i)[0];
+                if(prjString) {
+                    proj4.defs('EPSGUSER', zip.file(prjString.name).asText());
+                    EPSGUser = proj4('EPSGUSER');
+                }
 
                 SHPParser.load(URL.createObjectURL(new Blob([zip.file(shpString).asArrayBuffer()])), shpLoader, returnData);
                 DBFParser.load(URL.createObjectURL(new Blob([zip.file(dbfString).asArrayBuffer()])), encoding, dbfLoader, returnData);
@@ -48,12 +53,17 @@ function loadshp(config, returnData) {
             reader.readAsArrayBuffer(url);
         } else {
             JSZipUtils.getBinaryContent(url, function(err, data) {
-                if(err)  throw err;
+                if(err) throw err;
 
                 var URL = window.URL || window.webkitURL,
-                    zip = new JSZip(data),
-                    shpString =  zip.file(/.shp$/)[0].name,
-                    dbfString = zip.file(/.dbf$/)[0].name;
+                zip = new JSZip(data),
+                shpString =  zip.file(/.shp$/i)[0].name,
+                dbfString = zip.file(/.dbf$/i)[0].name,
+                prjString = zip.file(/.prj$/i)[0];
+                if(prjString) {
+                    proj4.defs('EPSGUSER', zip.file(prjString.name).asText());
+                    EPSGUser = proj4('EPSGUSER');
+                }
 
                 SHPParser.load(URL.createObjectURL(new Blob([zip.file(shpString).asArrayBuffer()])), shpLoader, returnData);
                 DBFParser.load(URL.createObjectURL(new Blob([zip.file(dbfString).asArrayBuffer()])), encoding, dbfLoader, returnData);
@@ -72,7 +82,7 @@ function loadEPSG(url, callback) {
 }
 
 function TransCoord(x, y) {
-    if (proj4)
+    if(proj4)
         var p = proj4(EPSGUser, EPSG4326 , [parseFloat(x), parseFloat(y)]);
     return {x: p[0], y: p[1]};
 }
@@ -91,8 +101,8 @@ function dbfLoader(data, returnData) {
 
 function toGeojson(geojsonData) {
     var geojson = {},
-        features = [],
-        feature, geometry, points;
+    features = [],
+    feature, geometry, points;
 
     var shpRecords = geojsonData.shp.records;
     var dbfRecords = geojsonData.dbf.records;

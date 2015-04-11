@@ -24,6 +24,7 @@ Include all of the necessary files for the webpage to preview shp.
 Load the ZIP archive that must contain the .shp and .dbf files and replace the .prj file of shapefile with EPSG code.
 
 Two options available if you need to set the EPSG or encoding for best fit to your data.
+You can skip EPSG code field if your ZIP archive contain the .prj file.
 
 ```JavaScript
 loadshp({
