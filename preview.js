@@ -43,7 +43,11 @@ function loadshp(config, returnData) {
                 prjString = zip.file(/.prj$/i)[0];
                 if(prjString) {
                     proj4.defs('EPSGUSER', zip.file(prjString.name).asText());
-                    EPSGUser = proj4('EPSGUSER');
+                    try {
+                      EPSGUser = proj4('EPSGUSER');
+                    } catch (e) {
+                      console.error('Unsuported Projection: ' + e);
+                    }
                 }
 
                 SHPParser.load(URL.createObjectURL(new Blob([zip.file(shpString).asArrayBuffer()])), shpLoader, returnData);
@@ -62,7 +66,11 @@ function loadshp(config, returnData) {
                 prjString = zip.file(/.prj$/i)[0];
                 if(prjString) {
                     proj4.defs('EPSGUSER', zip.file(prjString.name).asText());
-                    EPSGUser = proj4('EPSGUSER');
+                    try {
+                      EPSGUser = proj4('EPSGUSER');
+                    } catch (e) {
+                      console.error('Unsuported Projection: ' + e);
+                    }
                 }
 
                 SHPParser.load(URL.createObjectURL(new Blob([zip.file(shpString).asArrayBuffer()])), shpLoader, returnData);
