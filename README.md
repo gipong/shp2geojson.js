@@ -6,9 +6,9 @@ Inspired by this project by wavded http://github.com/wavded/js-shapefile-to-geoj
 # Demo
 http://gipong.github.io/shp2geojson.js/
 
-![ScreenShot](https://www.dropbox.com/s/3tsb7qovv7vyj1f/case1.png?dl=0)
+Case 1, https://www.dropbox.com/s/3tsb7qovv7vyj1f/case1.png?dl=0
 
-![ScreenShot](https://www.dropbox.com/s/d7rz8y284oivwg2/case2.png?dl=0)
+Case 2, https://www.dropbox.com/s/d7rz8y284oivwg2/case2.png?dl=0
 
 # Usage
 Include all of the necessary files for the webpage to preview shp.
