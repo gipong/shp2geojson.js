@@ -18,7 +18,8 @@
     display: block;
 }
 .tableDisplay {
-	height: 500px;
+	height: auto;
+    max-height: 400px;
 	overflow: auto;
 }
 .picInfo {
@@ -51,6 +52,9 @@
     margin-left: 5%;
     top: 10%;
     display: none;
+}
+#cancelAttr {
+    width: 100%;
 }
 #footer {
     position: absolute;
@@ -95,9 +99,9 @@
 #forkongithub a::after {
     bottom:1px;
     top:auto;
-} 
+}
 @media screen {
-    #forkongithub{ 
+    #forkongithub{
         position:absolute;
         display:block;
         top:0;

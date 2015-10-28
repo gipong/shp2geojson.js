@@ -8,13 +8,13 @@
 	</head>
 	<body>
 	<span id="forkongithub"><a href="https://github.com/gipong/shp2geojson.js">Fork me on GitHub</a></span>
-	<div id="wrap">
+	<div id="wrap" class="wrap">
 	<div id="map" ></div>
 
 	<div id="info">
 		<img class="tips" style="width: auto; height: 100%;" src="demo/shp2geojsonC2.svg">
 	</div>
-	
+
 	<div id="downloadLink"><div class="ui page grid">
 		<div class="sixteen wide column center aligned">
 		<a id="link" class="teal labeled icon large ui button" href="">
@@ -24,7 +24,7 @@
 	<div id="attr"><div class="tableDisplay"><table id="attribute" class="ui small celled unstackable table">
 		<thead id="attrHead"><tr class="center aligned"><th>Attribute</th><th>Value</th></tr></thead>
 		<tbody class="tbodyContent"></tbody>
-	</table></div></div>
+	</table></div><div class="ui red icon button" id="cancelAttr">Close</div></div>
 
 	<footer id="footer"><div class="ui page grid">
 
@@ -45,14 +45,14 @@
 	<div id="shp" class="shp-modal"><div class="ui page grid">
 
 		<div class="sixteen wide aligned column">
-						
+
 			<div class="ui form segment">
 				<div class="field"><div class="ui teal fluid labeled icon button upload" id="zipfile" data-content="Mandatory files : SHP , DBF" data-variation="inverted large">
 						Upload zip file
 						<i class="file archive outline icon"></i>
 						<input type="file" id="file" accept=".zip">
 				</div></div>
-				
+
 				<div class="field" id="dataInfo"></div>
 
 				<div id="option">
@@ -67,7 +67,7 @@
 				</div>
 
 				<div class="two fields">
-				
+
 				<div class="right field"><div class="ui blue fluid labeled icon button" data-content="Metadata : EPSG: 3826, Encoding: big5" data-variation="inverted large" id="downloadfile">
 					<i class="download icon"></i>Download TestData
 				</div></div>
@@ -75,13 +75,13 @@
 				<div class="field"><div class="ui teal fluid labeled icon disabled button" id="preview">Preview
 					<i class="add icon"></i>
 				</div></div>
-				
-				<div class="ui feed">   
+
+				<div class="ui feed">
 					<div class="content">
 						<div class="summary">
 						TestData Source <a href="http://data.tainan.gov.tw/dataset/tn-village" target="_blank">http://data.tainan.gov.tw/dataset/tn-village</a>.
 						</div>
-					</div> 
+					</div>
 				</div>
 				<div id="cancel" class="negative right ui button">Cancel</div>
 
@@ -108,14 +108,15 @@
 		</div>
 
  	</div></div>
-	
+
 	<div class="overlay"></div>
-	
+
 	<link rel="stylesheet" href="http://cdn.leafletjs.com/leaflet-0.5/leaflet.css" />
 	<link rel="stylesheet" href="demo/semantic.min.css"></link>
 	<link rel="stylesheet" href="demo/demo.css"></link>
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/proj4js/2.3.3/proj4.js"></script>
 	<script src="https://code.jquery.com/jquery-2.1.3.min.js"></script>
+	<script src="//code.jquery.com/ui/1.11.4/jquery-ui.js"></script>
 	<script src="http://cdn.leafletjs.com/leaflet-0.5/leaflet.js"></script>
 	<script src="lib/jszip.js"></script>
 	<script src="lib/jszip-utils.js"></script>
@@ -125,9 +126,9 @@
 	<script src="demo/semantic.min.js"></script>
 	<script src="preprocess.js"></script>
 	<script src="preview.js"></script>
-	<script type="text/javascript" charset="UTF-8"> 
+	<script type="text/javascript" charset="UTF-8">
 	$(document).ready(function() {
-		
+
 		var map = L.map('map').setView([ 0, 0 ], 5),
 		file,
 		vector;
@@ -139,16 +140,16 @@
 					return feature.properties.style;
 				},
 				onEachFeature: function (feature, layer) {
-					
+
 					layer.on({click: function(e) {
 						vector.eachLayer(function(l) {
 							vector.resetStyle(l);
 						});
-										
+
 						$('.tbodyContent').remove();
 						var tbody = '<tbody class="tbodyContent">';
 						for (var key in e.target.feature.properties) {
-							tbody += 
+							tbody +=
 								('<tr class="center aligned"><td>'+ key + '</td><td>' + e.target.feature.properties[key] + '</td></tr>');
 						}
 						$('#attribute').append(tbody + '</tbody>');
@@ -199,7 +200,7 @@
 				});
 			} else {
 				$('.modal').modal('show');
-			}	
+			}
 		}
 		initVector();
 
@@ -216,7 +217,7 @@
 			loadShpZip();
 		});
 
-		$('.button').popup({ 
+		$('.button').popup({
 			inline: true,
 			position : 'bottom left'
 		});
@@ -260,8 +261,11 @@
 				}
 			}
 		});
-		
-	});	
+
+		$("#attr").draggable({ containment: $(this).parent().parent(), scroll: false, cursor: "move" });
+		$('#cancelAttr').click(function(){ $('#attr').slideUp(300); });
+
+	});
 	</script>
 	</body>
 </html>

@@ -3,13 +3,6 @@ Convert shapefile to geoJSON via a web browser without Server-Side code. This co
 
 Inspired by this project by wavded http://github.com/wavded/js-shapefile-to-geojson
 
-# Demo
-http://gipong.github.io/shp2geojson.js/
-
-Case 1, https://www.dropbox.com/s/3tsb7qovv7vyj1f/case1.png?dl=0
-
-Case 2, https://www.dropbox.com/s/d7rz8y284oivwg2/case2.png?dl=0
-
 # Usage
 Include all of the necessary files for the webpage to preview shp.
 
@@ -79,6 +72,18 @@ loadshp({
     map.fitBounds(bounds);
 });
 ```
+# Demo
+http://gipong.github.io/shp2geojson.js/
+
+![index](demo/index.png)
+
+Case 1 (Encoding: Big5)
+
+![Big5](demo/Big5_case.png)
+
+Case 2 (Encoding: Shift_JIS)
+
+![Shift_JIS](demo/Shift_JIS_case.png)
 
 # License
 The MIT License (MIT)

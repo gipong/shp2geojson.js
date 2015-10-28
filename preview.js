@@ -1,7 +1,7 @@
 /*
  * predefined [EPSG:3821] projection
  * Please make sure your desired projection can find on http://epsg.io/
- * 
+ *
  * Usage :
  *      loadshp({
  *          url: '/shp/test.zip', // path or your upload file
@@ -12,7 +12,7 @@
  *      });
  *
  * Created by Gipong <sheu781230@gmail.com>
- * 
+ *
  */
 
 var inputData = {},
@@ -26,7 +26,7 @@ function loadshp(config, returnData) {
     EPSG = typeof config.EPSG != 'undefined' ? config.EPSG : 4326;
 
     loadEPSG('http://epsg.io/'+EPSG+'.js', function() {
-        if(EPSG == 3821) 
+        if(EPSG == 3821)
             proj4.defs([
                 ['EPSG:3821', '+proj=tmerc +ellps=GRS67 +towgs84=-752,-358,-179,-.0000011698,.0000018398,.0000009822,.00002329 +lat_0=0 +lon_0=121 +x_0=250000 +y_0=0 +k=0.9999 +units=m +no_defs']
             ]);
@@ -97,13 +97,13 @@ function TransCoord(x, y) {
 
 function shpLoader(data, returnData) {
     inputData['shp'] = data;
-    if(inputData['shp'] && inputData['dbf']) 
+    if(inputData['shp'] && inputData['dbf'])
         if(returnData) returnData(  toGeojson(inputData)  );
 }
 
 function dbfLoader(data, returnData) {
     inputData['dbf'] = data;
-    if(inputData['shp'] && inputData['dbf']) 
+    if(inputData['shp'] && inputData['dbf'])
         if(returnData) returnData(  toGeojson(inputData)  );
 }
 
