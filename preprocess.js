@@ -16,7 +16,9 @@ SHP = {
     NULL: 0,
     POINT: 1,
     POLYLINE: 3,
-    POLYGON: 5
+    POLYGON: 5,
+    POINTM: 21,
+    POLYLINEM: 23,
 };
 
 SHP.getShapeName = function(id) {
@@ -77,16 +79,16 @@ SHPParser.prototype.parse = function(arrayBuffer,url) {
         idx += 4;
         try {
             record.shape = this.parseShape(dv, idx, record.length);
-        } catch(e) {
+            o.records.push(record);
+        } catch (e) {
             console.log(e, record);
         }
         idx += record.length * 2;
-        o.records.push(record);
     }
     return o;
 };
 
-SHPParser.prototype.parseShape = function(dv, idx, length) {
+SHPParser.prototype.parseShape = function (dv, idx, length) {
     var i=0,
         c=null,
         shape = {};
@@ -123,14 +125,36 @@ SHPParser.prototype.parseShape = function(dv, idx, length) {
             idx += 8;
         }
       break;
-
+    case SHP.POINTM: // PointM (X, Y, M)
+        shape.content = {
+            x: dv.getFloat64(idx, true),
+            y: dv.getFloat64(idx + 8, true)
+        };
+        break;
+    case SHP.POLYLINEM: // PolylineM
+        c = shape.content = {
+            minX: dv.getFloat64(idx, true),
+            minY: dv.getFloat64(idx + 8, true),
+            maxX: dv.getFloat64(idx + 16, true),
+            maxY: dv.getFloat64(idx + 24, true),
+            parts: new Int32Array(dv.getInt32(idx + 32, true)),
+            points: new Float64Array(dv.getInt32(idx + 36, true) * 2)
+        };
+        idx += 40;
+        for (i = 0; i < c.parts.length; i++) {
+            c.parts[i] = dv.getInt32(idx, true);
+            idx += 4;
+        }
+        for (i = 0; i < c.points.length; i++) {
+            c.points[i] = dv.getFloat64(idx, true);
+            idx += 8;
+        }
+        break;
     case 8: // MultiPoint (MBR, pointCount, points)
     case 11: // PointZ (X, Y, Z, M)
     case 13: // PolylineZ
     case 15: // PolygonZ
     case 18: // MultiPointZ
-    case 21: // PointM (X, Y, M)
-    case 23: // PolylineM
     case 25: // PolygonM
     case 28: // MultiPointM
     case 31: // MultiPatch
