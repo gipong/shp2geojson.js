@@ -18,12 +18,16 @@
 var inputData = {},
 geoData = {},
 EPSGUser, url, encoding, EPSG,
-EPSG4326 = proj4('EPSG:4326');
+EPSGDestination = proj4('EPSG:4326');
 
 function loadshp(config, returnData) {
+    inputData = {};
     url = config.url;
     encoding = typeof config.encoding != 'utf-8' ? config.encoding : 'utf-8';
     EPSG = typeof config.EPSG != 'undefined' ? config.EPSG : 4326;
+    if (config.EPSGDestination) {
+        EPSGDestination = config.EPSGDestination;
+    }
 
     loadEPSG('http://epsg.io/'+EPSG+'.js', function() {
         if(EPSG == 3821)
@@ -37,21 +41,25 @@ function loadshp(config, returnData) {
             var reader = new FileReader();
             reader.onload = function(e) {
                 var URL = window.URL || window.webkitURL || window.mozURL || window.msURL,
-                zip = new JSZip(e.target.result),
-                shpString =  zip.file(/.shp$/i)[0].name,
-                dbfString = zip.file(/.dbf$/i)[0].name,
-                prjString = zip.file(/.prj$/i)[0];
-                if(prjString) {
-                    proj4.defs('EPSGUSER', zip.file(prjString.name).asText());
-                    try {
-                      EPSGUser = proj4('EPSGUSER');
-                    } catch (e) {
-                      console.error('Unsuported Projection: ' + e);
+                zip = new JSZip(e.target.result);
+                if (zip.file(/.shp$/i).length > 0 && zip.file(/.dbf$/i).length > 0) {
+                    shpString = zip.file(/.shp$/i)[0].name;
+                    dbfString = zip.file(/.dbf$/i)[0].name;
+                    prjString = zip.file(/.prj$/i)[0];
+                    if (prjString) {
+                        proj4.defs('EPSGUSER', zip.file(prjString.name).asText());
+                        try {
+                            EPSGUser = proj4('EPSGUSER');
+                        } catch (e) {
+                            console.error('Unsuported Projection: ' + e);
+                        }
                     }
-                }
 
-                SHPParser.load(URL.createObjectURL(new Blob([zip.file(shpString).asArrayBuffer()])), shpLoader, returnData);
-                DBFParser.load(URL.createObjectURL(new Blob([zip.file(dbfString).asArrayBuffer()])), encoding, dbfLoader, returnData);
+                    SHPParser.load(URL.createObjectURL(new Blob([zip.file(shpString).asArrayBuffer()])), shpLoader, returnData);
+                    DBFParser.load(URL.createObjectURL(new Blob([zip.file(dbfString).asArrayBuffer()])), encoding, dbfLoader, returnData);
+                } else {
+                    returnData(undefined);
+                }
             }
 
             reader.readAsArrayBuffer(url);
@@ -60,22 +68,25 @@ function loadshp(config, returnData) {
                 if(err) throw err;
 
                 var URL = window.URL || window.webkitURL,
-                zip = new JSZip(data),
-                shpString =  zip.file(/.shp$/i)[0].name,
-                dbfString = zip.file(/.dbf$/i)[0].name,
-                prjString = zip.file(/.prj$/i)[0];
-                if(prjString) {
-                    proj4.defs('EPSGUSER', zip.file(prjString.name).asText());
-                    try {
-                      EPSGUser = proj4('EPSGUSER');
-                    } catch (e) {
-                      console.error('Unsuported Projection: ' + e);
+                zip = new JSZip(data);
+                if (zip.file(/.shp$/i).length > 0 && zip.file(/.dbf$/i).length > 0) {
+                    shpString = zip.file(/.shp$/i)[0].name;
+                    dbfString = zip.file(/.dbf$/i)[0].name;
+                    prjString = zip.file(/.prj$/i)[0];
+                    if(prjString) {
+                        proj4.defs('EPSGUSER', zip.file(prjString.name).asText());
+                        try {
+                            EPSGUser = proj4('EPSGUSER');
+                        } catch (e) {
+                            console.error('Unsuported Projection: ' + e);
+                        }
                     }
+
+                    SHPParser.load(URL.createObjectURL(new Blob([zip.file(shpString).asArrayBuffer()])), shpLoader, returnData);
+                    DBFParser.load(URL.createObjectURL(new Blob([zip.file(dbfString).asArrayBuffer()])), encoding, dbfLoader, returnData);
+                } else {
+                    returnData(undefined);
                 }
-
-                SHPParser.load(URL.createObjectURL(new Blob([zip.file(shpString).asArrayBuffer()])), shpLoader, returnData);
-                DBFParser.load(URL.createObjectURL(new Blob([zip.file(dbfString).asArrayBuffer()])), encoding, dbfLoader, returnData);
-
             });
         }
     });
@@ -91,7 +102,7 @@ function loadEPSG(url, callback) {
 
 function TransCoord(x, y) {
     if(proj4)
-        var p = proj4(EPSGUser, EPSG4326 , [parseFloat(x), parseFloat(y)]);
+        var p = proj4(EPSGUser, EPSGDestination, [parseFloat(x), parseFloat(y)]);
     return {x: p[0], y: p[1]};
 }
 
@@ -133,45 +144,81 @@ function toGeojson(geojsonData) {
         geometry = feature.geometry = {};
         properties = feature.properties = dbfRecords[i];
 
-        // point : 1 , polyline : 3 , polygon : 5, multipoint : 8
-        switch(shpRecords[i].shape.type) {
-            case 1:
-                geometry.type = "Point";
-                var reprj = TransCoord(shpRecords[i].shape.content.x, shpRecords[i].shape.content.y);
-                geometry.coordinates = [
-                    reprj.x, reprj.y
-                ];
-                break;
-            case 3:
-            case 8:
-                geometry.type = (shpRecords[i].shape.type == 3 ? "LineString" : "MultiPoint");
-                geometry.coordinates = [];
-                for (var j = 0; j < shpRecords[i].shape.content.points.length; j+=2) {
-                    var reprj = TransCoord(shpRecords[i].shape.content.points[j], shpRecords[i].shape.content.points[j+1]);
-                    geometry.coordinates.push([reprj.x, reprj.y]);
-                };
-                break;
-            case 5:
-                geometry.type = "Polygon";
-                geometry.coordinates = [];
+        if (shpRecords[i].shape) {
+            // point : 1 , polyline : 3 , polygon : 5, multipoint : 8
+            switch (shpRecords[i].shape.type) {
+                case 1:
+                    geometry.type = "Point";
+                    var reprj = TransCoord(shpRecords[i].shape.content.x, shpRecords[i].shape.content.y);
+                    geometry.coordinates = [
+                        reprj.x, reprj.y
+                    ];
+                    break;
+                case 21:
+                    geometry.type = "Point";
+                    var reprj = TransCoord(shpRecords[i].shape.content.x, shpRecords[i].shape.content.y);
+                    geometry.coordinates = [
+                        reprj.x, reprj.y
+                    ];
+                    break;
+                case 3:
+                case 8:
+                    if (shpRecords[i].shape.content.parts.length == 1) {
+                        geometry.type = (shpRecords[i].shape.type == 3 ? "LineString" : "MultiPoint");
+                        geometry.coordinates = [];
+                        for (var j = 0; j < shpRecords[i].shape.content.points.length; j += 2) {
+                            var reprj = TransCoord(shpRecords[i].shape.content.points[j], shpRecords[i].shape.content.points[j + 1]);
+                            geometry.coordinates.push([reprj.x, reprj.y]);
+                        };
+                    } else if (shpRecords[i].shape.content.parts.length > 1) {
+                        geometry.type = "MultiLineString";
+                        geometry.coordinates = [];
+                        for (var partIndex = 0; partIndex < shpRecords[i].shape.content.parts.length; partIndex++) {
+                            var startIndex = shpRecords[i].shape.content.parts[partIndex] * 2;
+                            var finishIndex = ((shpRecords[i].shape.content.parts.length - 1) === partIndex) ?
+                                shpRecords[i].shape.content.points.length : (shpRecords[i].shape.content.parts[partIndex + 1] * 2);
 
-                for (var pts = 0; pts < shpRecords[i].shape.content.parts.length; pts++) {
-                    var partsIndex = shpRecords[i].shape.content.parts[pts],
-                        part = [],
-                        dataset;
+                            var coordinatesArray = [];
+                            while (startIndex < finishIndex) {
+                                var reprj = TransCoord(shpRecords[i].shape.content.points[startIndex], shpRecords[i].shape.content.points[startIndex + 1]);
+                                coordinatesArray.push([reprj.x, reprj.y]);
+                                startIndex+=2;
+                            }
 
-                    for (var j = partsIndex*2; j < (shpRecords[i].shape.content.parts[pts+1]*2 || shpRecords[i].shape.content.points.length); j+=2) {
-                        var point = shpRecords[i].shape.content.points;
-                        var reprj = TransCoord(point[j], point[j+1]);
-                        part.push([reprj.x, reprj.y]);
+                            geometry.coordinates.push(coordinatesArray);
+                        }
+                    }
+                    break;
+                case 23:
+                    geometry.type = "LineString";
+                    geometry.coordinates = [];
+                    for (var j = 0; j < shpRecords[i].shape.content.points.length; j += 2) {
+                        var reprj = TransCoord(shpRecords[i].shape.content.points[j], shpRecords[i].shape.content.points[j + 1]);
+                        geometry.coordinates.push([reprj.x, reprj.y]);
                     };
-                    geometry.coordinates.push(part);
+                    break;
+                case 5:
+                    geometry.type = "Polygon";
+                    geometry.coordinates = [];
 
-                };
-                break;
-            default:
+                    for (var pts = 0; pts < shpRecords[i].shape.content.parts.length; pts++) {
+                        var partsIndex = shpRecords[i].shape.content.parts[pts],
+                            part = [],
+                            dataset;
+
+                        for (var j = partsIndex * 2; j < (shpRecords[i].shape.content.parts[pts + 1] * 2 || shpRecords[i].shape.content.points.length) ; j += 2) {
+                            var point = shpRecords[i].shape.content.points;
+                            var reprj = TransCoord(point[j], point[j + 1]);
+                            part.push([reprj.x, reprj.y]);
+                        };
+                        geometry.coordinates.push(part);
+
+                    };
+                    break;
+                default:
+            }
+            if ("coordinates" in feature.geometry) features.push(feature);
         }
-        if("coordinates" in feature.geometry) features.push(feature);
     };
     return geojson;
 }
