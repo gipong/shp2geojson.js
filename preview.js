@@ -29,7 +29,7 @@ function loadshp(config, returnData) {
         EPSGDestination = config.EPSGDestination;
     }
 
-    loadEPSG('http://epsg.io/'+EPSG+'.js', function() {
+    loadEPSG((('https:' == document.location.protocol) ? 'https://epsg.io/' : 'http://epsg.io/') + EPSG + '.js', function () {
         if(EPSG == 3821)
             proj4.defs([
                 ['EPSG:3821', '+proj=tmerc +ellps=GRS67 +towgs84=-752,-358,-179,-.0000011698,.0000018398,.0000009822,.00002329 +lat_0=0 +lon_0=121 +x_0=250000 +y_0=0 +k=0.9999 +units=m +no_defs']
@@ -147,21 +147,16 @@ function toGeojson(geojsonData) {
         if (shpRecords[i].shape) {
             // point : 1 , polyline : 3 , polygon : 5, multipoint : 8
             switch (shpRecords[i].shape.type) {
-                case 1:
+                case 1:// Point (x,y)
+                case 11:// PointZ (X, Y, Z, M)
+                case 21:// PointM (X, Y, M)
                     geometry.type = "Point";
                     var reprj = TransCoord(shpRecords[i].shape.content.x, shpRecords[i].shape.content.y);
                     geometry.coordinates = [
                         reprj.x, reprj.y
                     ];
                     break;
-                case 21:
-                    geometry.type = "Point";
-                    var reprj = TransCoord(shpRecords[i].shape.content.x, shpRecords[i].shape.content.y);
-                    geometry.coordinates = [
-                        reprj.x, reprj.y
-                    ];
-                    break;
-                case 3:
+                case 3:// Polyline
                 case 8:
                     if (shpRecords[i].shape.content.parts.length == 1) {
                         geometry.type = (shpRecords[i].shape.type == 3 ? "LineString" : "MultiPoint");
@@ -189,15 +184,35 @@ function toGeojson(geojsonData) {
                         }
                     }
                     break;
-                case 23:
-                    geometry.type = "LineString";
-                    geometry.coordinates = [];
-                    for (var j = 0; j < shpRecords[i].shape.content.points.length; j += 2) {
-                        var reprj = TransCoord(shpRecords[i].shape.content.points[j], shpRecords[i].shape.content.points[j + 1]);
-                        geometry.coordinates.push([reprj.x, reprj.y]);
-                    };
+                case 13:// PolylineZ
+                case 23:// PolylineM
+                    if (shpRecords[i].shape.content.parts.length == 1) {
+                        geometry.type = "LineString";
+                        geometry.coordinates = [];
+                        for (var j = 0; j < shpRecords[i].shape.content.points.length; j += 2) {
+                            var reprj = TransCoord(shpRecords[i].shape.content.points[j], shpRecords[i].shape.content.points[j + 1]);
+                            geometry.coordinates.push([reprj.x, reprj.y]);
+                        };
+                    } else if (shpRecords[i].shape.content.parts.length > 1) {
+                        geometry.type = "MultiLineString";
+                        geometry.coordinates = [];
+                        for (var partIndex = 0; partIndex < shpRecords[i].shape.content.parts.length; partIndex++) {
+                            var startIndex = shpRecords[i].shape.content.parts[partIndex] * 2;
+                            var finishIndex = ((shpRecords[i].shape.content.parts.length - 1) === partIndex) ?
+                                shpRecords[i].shape.content.points.length : (shpRecords[i].shape.content.parts[partIndex + 1] * 2);
+
+                            var coordinatesArray = [];
+                            while (startIndex < finishIndex) {
+                                var reprj = TransCoord(shpRecords[i].shape.content.points[startIndex], shpRecords[i].shape.content.points[startIndex + 1]);
+                                coordinatesArray.push([reprj.x, reprj.y]);
+                                startIndex += 2;
+                            }
+
+                            geometry.coordinates.push(coordinatesArray);
+                        }
+                    }
                     break;
-                case 5:
+                case 5:// Polygon (MBR, partCount, pointCount, parts, points)
                     geometry.type = "Polygon";
                     geometry.coordinates = [];
 

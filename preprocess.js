@@ -18,7 +18,9 @@ SHP = {
     POLYLINE: 3,
     POLYGON: 5,
     POINTM: 21,
+    POINTZ: 11,
     POLYLINEM: 23,
+    POLYLINEZ: 13
 };
 
 SHP.getShapeName = function(id) {
@@ -105,6 +107,21 @@ SHPParser.prototype.parseShape = function (dv, idx, length) {
             y: dv.getFloat64(idx+8, true)
         };
         break;
+    case SHP.POINTM: // PointM (X, Y, M)
+        shape.content = {
+            x: dv.getFloat64(idx, true),
+            y: dv.getFloat64(idx + 8, true),
+            m: dv.getFloat64(idx + 16, true)
+        };
+        break;
+    case SHP.POINTZ: // PointZ (X, Y, Z, M)
+        shape.content = {
+            x: dv.getFloat64(idx, true),
+            y: dv.getFloat64(idx + 8, true),
+            z: dv.getFloat64(idx + 16, true),
+            m: dv.getFloat64(idx + 24, true)
+        };
+        break;
     case SHP.POLYLINE: // Polyline (MBR, partCount, pointCount, parts, points)
     case SHP.POLYGON: // Polygon (MBR, partCount, pointCount, parts, points)
         c = shape.content = {
@@ -125,12 +142,6 @@ SHPParser.prototype.parseShape = function (dv, idx, length) {
             idx += 8;
         }
       break;
-    case SHP.POINTM: // PointM (X, Y, M)
-        shape.content = {
-            x: dv.getFloat64(idx, true),
-            y: dv.getFloat64(idx + 8, true)
-        };
-        break;
     case SHP.POLYLINEM: // PolylineM
         c = shape.content = {
             minX: dv.getFloat64(idx, true),
@@ -138,21 +149,99 @@ SHPParser.prototype.parseShape = function (dv, idx, length) {
             maxX: dv.getFloat64(idx + 16, true),
             maxY: dv.getFloat64(idx + 24, true),
             parts: new Int32Array(dv.getInt32(idx + 32, true)),
-            points: new Float64Array(dv.getInt32(idx + 36, true) * 2)
+            points: new Float64Array(dv.getInt32(idx + 36, true) * 2),
+            measureRange: new Float64Array(2),
+            measures: new Float64Array(dv.getInt32(idx + 36, true))
         };
         idx += 40;
+        byteLen -= 40;
         for (i = 0; i < c.parts.length; i++) {
             c.parts[i] = dv.getInt32(idx, true);
             idx += 4;
+            byteLen -= 4;
+        }
+
+        for (i = 0; i < c.points.length; i++) {
+            c.points[i] = dv.getFloat64(idx, true);
+            idx += 8;
+            byteLen -= 8;
+        }
+
+        if (byteLen >= 16) {
+            c.measureRange[0] = dv.getFloat64(idx, true);
+            c.measureRange[1] = dv.getFloat64(idx + 8, true);
+            idx += 16;
+            byteLen -= 16;
+            for (i = 0; i < c.measures.length; i++) {
+                if (byteLen <= 0) {
+                    break;
+                }
+
+                c.measures[i] = dv.getFloat64(idx, true);
+                idx += 8;
+                byteLen -= 8;
+            }
+        }
+        break;
+    case SHP.POLYLINEZ: // PolylineZ
+        c = shape.content = {
+            minX: dv.getFloat64(idx, true),
+            minY: dv.getFloat64(idx + 8, true),
+            maxX: dv.getFloat64(idx + 16, true),
+            maxY: dv.getFloat64(idx + 24, true),
+            parts: new Int32Array(dv.getInt32(idx + 32, true)),
+            points: new Float64Array(dv.getInt32(idx + 36, true) * 2),
+            zRange: new Float64Array(2),
+            z: new Float64Array(dv.getInt32(idx + 36, true)),
+            measureRange: new Float64Array(2),
+            measures: new Float64Array(dv.getInt32(idx + 36, true))
+        };
+        idx += 40;
+        byteLen -= 40;
+        for (i = 0; i < c.parts.length; i++) {
+            c.parts[i] = dv.getInt32(idx, true);
+            idx += 4;
+            byteLen -= 4;
         }
         for (i = 0; i < c.points.length; i++) {
             c.points[i] = dv.getFloat64(idx, true);
             idx += 8;
+            byteLen -= 8;
+        }
+
+        if (byteLen >= 16) {
+            c.zRange[0] = dv.getFloat64(idx, true);
+            c.zRange[1] = dv.getFloat64(idx + 8, true);
+            idx += 16;
+            byteLen -= 16;
+            for (i = 0; i < c.z.length; i++) {
+                if (byteLen <= 0) {
+                    break;
+                }
+
+                c.z[i] = dv.getFloat64(idx, true);
+                idx += 8;
+                byteLen -= 8;
+            }
+
+            if (byteLen >= 16) {
+                c.measureRange[0] = dv.getFloat64(idx, true);
+                c.measureRange[1] = dv.getFloat64(idx + 8, true);
+                idx += 16;
+                byteLen -= 16;
+                for (i = 0; i < c.measures.length; i++) {
+                    if (byteLen <= 0) {
+                        break;
+                    }
+
+                    c.measures[i] = dv.getFloat64(idx, true);
+                    idx += 8;
+                    byteLen -= 8;
+                }
+            }
         }
         break;
     case 8: // MultiPoint (MBR, pointCount, points)
-    case 11: // PointZ (X, Y, Z, M)
-    case 13: // PolylineZ
     case 15: // PolygonZ
     case 18: // MultiPointZ
     case 25: // PolygonM
