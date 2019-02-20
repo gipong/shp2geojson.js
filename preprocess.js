@@ -183,7 +183,13 @@ DBFParser.prototype.parse = function(arrayBuffer,src,response,encoding) {
     var o = {},
         dv = new DataView(arrayBuffer),
         idx = 0,
-        offset = (encoding.match(/big5/i))?2:3;
+        offset;
+
+    switch(encoding.toLowerCase()) {
+      case "big5": offset = 2; break;
+      case "iso-8859-1": offset = 1; break;
+      default: offset = 3;
+    }
 
     o.fileName = src;
     o.version = dv.getInt8(idx, false);
