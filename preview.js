@@ -17,7 +17,7 @@
 /*
    2024-08-05
    Upgraded jszip.js to from v2.4 to v3.10
-   Ammended preview.js to fit the changes
+   Amended preview.js to fit the changes
         Updated JSZip function calling methods and syntax to v 3.x
         Removed JSZipUtils usage: Replaced it with the fetch API.
         Updated FileReader handling: Now JSZip.loadAsync is directly used after reading the file as an ArrayBuffer.
