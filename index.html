@@ -124,10 +124,11 @@
 	<script type="text/javascript" charset="UTF-8">
 	$(document).ready(function() {
 
-		var map = L.map('map').setView([ 0, 0 ], 5),
-		file,
-		vector;
-		L.tileLayer('http://{s}.tile.osm.org/{z}/{x}/{y}.png' , { maxZoom: 13}).addTo(map);
+		const map = L.map('map').setView([25.0330, 121.5654], 10);
+		L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+			attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+		}).addTo(map);
+
 
 		function initVector () {
 			vector = L.geoJson([], {
