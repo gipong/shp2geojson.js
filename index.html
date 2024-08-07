@@ -43,7 +43,6 @@
 	</div>
 
 	<div id="shp" class="shp-modal"><div class="ui page grid">
-
 		<div class="sixteen wide aligned column">
 
 			<div class="ui form segment">
@@ -111,28 +110,25 @@
 
 	<div class="overlay"></div>
 
-	<link rel="stylesheet" href="http://cdn.leafletjs.com/leaflet-0.5/leaflet.css" />
+	<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
 	<link rel="stylesheet" href="demo/semantic.min.css"></link>
 	<link rel="stylesheet" href="demo/demo.css"></link>
-	<script src="https://cdnjs.cloudflare.com/ajax/libs/proj4js/2.3.3/proj4.js"></script>
-	<script src="https://code.jquery.com/jquery-2.1.3.min.js"></script>
-	<script src="//code.jquery.com/ui/1.11.4/jquery-ui.js"></script>
-	<script src="http://cdn.leafletjs.com/leaflet-0.5/leaflet.js"></script>
-	<script src="lib/jszip.js"></script>
-	<script src="lib/jszip-utils.js"></script>
-	<!--[if IE]>
-	<script type="text/javascript" src="lib/jszip-utils-ie.js"></script>
-	<![endif]-->
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/proj4js/2.11.0/proj4.js"></script>
+	<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+	<script src="//code.jquery.com/ui/1.14.0/jquery-ui.js"></script>
+	<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+	<script src="lib/jszip.js"></script>x`
 	<script src="demo/semantic.min.js"></script>
 	<script src="preprocess.js"></script>
 	<script src="preview.js"></script>
 	<script type="text/javascript" charset="UTF-8">
 	$(document).ready(function() {
 
-		var map = L.map('map').setView([ 0, 0 ], 5),
-		file,
-		vector;
-		L.tileLayer('http://{s}.tile.osm.org/{z}/{x}/{y}.png' , { maxZoom: 13}).addTo(map);
+		const map = L.map('map').setView([25.0330, 121.5654], 10);
+		L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+			attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+		}).addTo(map);
+
 
 		function initVector () {
 			vector = L.geoJson([], {
@@ -231,7 +227,7 @@
 			map.fitBounds(vector.getBounds());
 		});
 		$('#downloadfile').click(function() {
-			window.location.href = 'demo/10tnvillage.zip';
+			window.location.href = '10tnvillage.zip';
 		});
 		$('#addZipfile').click(function() {
 			$('.shp-modal').toggleClass('effect');
