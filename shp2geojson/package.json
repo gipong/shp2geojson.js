@@ -14,7 +14,9 @@
     "@babel/core": "^7.25.2",
     "@babel/preset-env": "^7.25.3",
     "@babel/preset-react": "^7.24.7",
-    "babel-loader": "^9.1.3"
+    "babel-cli": "^6.26.0",
+    "babel-loader": "^9.1.3",
+    "babel-preset-es2015": "^6.24.1"
   },
   "dependencies": {
     "jszip": "^3.10.1",

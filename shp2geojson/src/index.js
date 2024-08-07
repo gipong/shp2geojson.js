@@ -203,4 +203,4 @@ class Shp2GeoJsonLoader {
 	}
 }
 
-export default Shp2GeoJsonLoader;
+module.exports = Shp2GeoJsonLoader;
